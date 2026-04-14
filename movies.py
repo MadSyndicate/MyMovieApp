@@ -2,15 +2,14 @@ import statistics as stats
 import random as rand
 import sys
 from datetime import datetime
-from enum import Enum
 
 import matplotlib.pyplot as plt
 from fuzzywuzzy import process # also pip install python-Levenshtein to get rid of warning
-import movie_storage as db_op
+import movie_storage_sql as db_sql
 
 
 # Source - https://stackoverflow.com/a/287944
-class Bcolors(Enum):
+class Bcolors:
     """
     holds the used style colors and formats
     """
@@ -60,7 +59,7 @@ def validate_db_not_empty():
     Helper function to validate if database is not empty.
     :return: A tuple with bool for the quote 'db_not_empty' and the actual entire db
     """
-    db_data = db_op.get_movies()
+    db_data = db_sql.list_movies()
     if len(db_data) == 0:
         return False, None
     return True, db_data
@@ -108,7 +107,7 @@ def create_movie():
     """
     movie_name = get_input(f"{Bcolors.GREEN}Enter a movie name: {Bcolors.ENDC}", str,
                            "Movie name must not be empty! Please try again.")
-    movie_exist = db_op.lookup_specific_movie(movie_name)
+    movie_exist = db_sql.get_specific_movie(movie_name)
     if movie_exist[0]:
         print(f"The Database already has a movie called "
               f"{Bcolors.BOLD}{movie_name}{Bcolors.ENDC} "
@@ -121,7 +120,7 @@ def create_movie():
         movie_rating = get_input(f"{Bcolors.GREEN}Enter the movie rating: {Bcolors.ENDC}", float,
                                f"{Bcolors.FAIL}Please enter a float up to 10.0!{Bcolors.ENDC}",
                                  limit=10)
-        db_op.add_movie(movie_name, movie_year, movie_rating)
+        db_sql.add_movie(movie_name, movie_year, movie_rating)
         print(
             f"{Bcolors.BOLD}{movie_name}{Bcolors.ENDC} ({movie_year}) was created in database"
             f" with rating: {Bcolors.BOLD}{movie_rating}{Bcolors.ENDC}")
@@ -135,7 +134,7 @@ def get_all_movies():
     each movie in the format: name (year) : rating
     Also tells the user if there are no movies in the database
     """
-    db_data = db_op.get_movies()
+    db_data = db_sql.list_movies()
 
     if len(db_data) == 0:
         print("There are currently zero movies in the database.")
@@ -155,12 +154,12 @@ def update_movie_rating():
     otherwise prints out that no movie was found.
     """
     movie_name = input(f"{Bcolors.GREEN}Enter a movie name that shall be updated: {Bcolors.ENDC}")
-    movie_exist = db_op.lookup_specific_movie(movie_name)
+    movie_exist = db_sql.get_specific_movie(movie_name)
     if movie_exist[0]:
         movie_rating = get_input(f"{Bcolors.GREEN}Enter the movie rating: {Bcolors.ENDC}", float,
                                  f"{Bcolors.FAIL}Please enter a float!{Bcolors.ENDC}")
-        db_op.update_movie(movie_name, movie_rating)
-        print(f"Movie {Bcolors.BOLD}`{movie_name}`{Bcolors.ENDC} successfully updated! ")
+        db_sql.update_movie(movie_name, movie_rating)
+        #print(f"Movie {Bcolors.BOLD}`{movie_name}`{Bcolors.ENDC} successfully updated! ")  #TODO
     else:
         print(f"{Bcolors.FAIL}Error: `{movie_name}` was not found and thus "
               f"cannot be updated!{Bcolors.ENDC}")
@@ -174,10 +173,10 @@ def delete_movie():
     otherwise prints out that no movie was found.
     """
     movie_name = input("Enter a movie name that shall be deleted: ")
-    movie_exist = db_op.lookup_specific_movie(movie_name)
+    movie_exist = db_sql.get_specific_movie(movie_name)
     if movie_exist[0]:
-        db_op.delete_movie(movie_name)
-        print(f"{Bcolors.BOLD}`{movie_name}`{Bcolors.ENDC} was deleted from database")
+        db_sql.delete_movie(movie_name)
+        #print(f"{Bcolors.BOLD}`{movie_name}`{Bcolors.ENDC} was deleted from database")
     else:
         print(f"{Bcolors.FAIL}Error: `{movie_name}` was not found in database and thus "
               f"cannot be deleted!")
@@ -213,7 +212,7 @@ def get_movie_stats():
         print()
         return
 
-    db_data = db_op.get_movies()
+    db_data = check_for_db_data[1]
 
     average_rating = stats.mean(movie["rating"] for movie in db_data.values())
     median_rating = stats.median(movie["rating"] for movie in db_data.values())
@@ -259,7 +258,7 @@ def fuzzy_movie_search():
     If search input is exact match with movie title, prints out the movie information.
     """
     search_input = input("Enter part of movie name: ")
-    data = db_op.get_movies()
+    data = db_sql.list_movies()
     if search_input in data:
         print(f"{Bcolors.BOLD}{search_input}: {data[search_input]}{Bcolors.ENDC}")
     else:
@@ -280,7 +279,7 @@ def get_movies_sorted_rating():
     """
     Prints out all movies in the database by rating in ascending order
     """
-    data = db_op.get_movies()
+    data = db_sql.list_movies()
     sorted_by_rating = sorted(data.items(), key=lambda m: m[1]["rating"])
     for movie, data in sorted_by_rating:
         print(f"{Bcolors.BOLD}{movie} ({data['year']}), "
@@ -292,7 +291,7 @@ def get_movies_sorted_year():
     """
     Prints out all movies in the database by year of release. Order can be controlled by user input
     """
-    data = db_op.get_movies()
+    data = db_sql.list_movies()
     sort_order_unknown = True
     sorted_by_year = []
     while sort_order_unknown:
@@ -329,7 +328,7 @@ def draw_rating_histogram_to_file():
     Function to print a simple histogram of movie rating and number of movies
     in the database in a .png-file.
     """
-    data = db_op.get_movies()
+    data = db_sql.list_movies()
     file_name_input = input(f"{Bcolors.GREEN}Enter a file name to "
                             f"put the histogram: {Bcolors.ENDC}")
     rating_list = [m["rating"] for m in data.values()]
@@ -371,7 +370,7 @@ def get_filtered_movies():
     start and end year. If no input is given for any of those criteria, they are considered
     to not exist.
     """
-    db_data = db_op.get_movies()
+    db_data = db_sql.list_movies()
 
     minimum_rating = ask_for_filter_input(
         f"{Bcolors.GREEN}Enter a minimum rating (leave blank for no minimum): {Bcolors.ENDC}",
