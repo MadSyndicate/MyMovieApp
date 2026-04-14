@@ -1,11 +1,16 @@
+from dotenv import load_dotenv
+load_dotenv()
+
 import statistics as stats
 import random as rand
 import sys
-from datetime import datetime
 
 import matplotlib.pyplot as plt
 from fuzzywuzzy import process # also pip install python-Levenshtein to get rid of warning
 import movie_storage_sql as db_sql
+import api.fetch_movie_data as movie_api
+
+
 
 
 # Source - https://stackoverflow.com/a/287944
@@ -114,17 +119,19 @@ def create_movie():
               f"({Bcolors.BOLD}{movie_exist[1]['year']}{Bcolors.ENDC}) "
               f"with a rating of {Bcolors.BOLD}{movie_exist[1]['rating']}{Bcolors.ENDC}")
     else:
-        movie_year = get_input(f"{Bcolors.GREEN}Enter the movie year: {Bcolors.ENDC}", int,
-                               f"{Bcolors.FAIL}Please enter an integer!{Bcolors.ENDC}",
-                               limit=datetime.now().year)
-        movie_rating = get_input(f"{Bcolors.GREEN}Enter the movie rating: {Bcolors.ENDC}", float,
-                               f"{Bcolors.FAIL}Please enter a float up to 10.0!{Bcolors.ENDC}",
-                                 limit=10)
-        db_sql.add_movie(movie_name, movie_year, movie_rating)
-        print(
-            f"{Bcolors.BOLD}{movie_name}{Bcolors.ENDC} ({movie_year}) was created in database"
-            f" with rating: {Bcolors.BOLD}{movie_rating}{Bcolors.ENDC}")
-
+        api_response = movie_api.fetch_movie_data(movie_name)
+        if api_response["Response"] == 'True':
+            movie_year = api_response["Year"]
+            movie_rating = next(
+                (float(r["Value"].split("/")[0]) for r in api_response["Ratings"] if r["Source"] == "Internet Movie Database"),
+                None
+            )
+            db_sql.add_movie(movie_name, movie_year, movie_rating)
+            print(
+                f"{Bcolors.BOLD}{movie_name}{Bcolors.ENDC} ({movie_year}) was created in database"
+                f" with rating: {Bcolors.BOLD}{movie_rating}{Bcolors.ENDC}")
+        else:
+            print(f"Movie with name {movie_name} could not be found on omdapi.com. Please try another name!")
     print()
 
 
