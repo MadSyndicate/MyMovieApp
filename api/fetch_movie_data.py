@@ -1,9 +1,5 @@
 import os
 import requests
-#from dotenv import load_dotenv
-
-#load_dotenv()
-
 DATA_URL = "http://www.omdbapi.com/"
 API_KEY = os.getenv('API_KEY')
 

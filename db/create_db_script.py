@@ -18,3 +18,11 @@ with engine.connect() as create_connection:
         )
     """))
     create_connection.commit()
+
+# Adding poster image url column after
+with engine.connect() as create_connection:
+    create_connection.execute(text("""
+        ALTER TABLE movies
+        ADD COLUMN poster_url TEXT;
+    """))
+    create_connection.commit()

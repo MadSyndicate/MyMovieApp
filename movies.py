@@ -121,12 +121,13 @@ def create_movie():
     else:
         api_response = movie_api.fetch_movie_data(movie_name)
         if api_response["Response"] == 'True':
-            movie_year = api_response["Year"]
+            movie_year = api_response.get("Year", None)
             movie_rating = next(
                 (float(r["Value"].split("/")[0]) for r in api_response["Ratings"] if r["Source"] == "Internet Movie Database"),
                 None
             )
-            db_sql.add_movie(movie_name, movie_year, movie_rating)
+            movie_poster = api_response.get("Poster", None)
+            db_sql.add_movie(movie_name, movie_year, movie_rating, movie_poster)
             print(
                 f"{Bcolors.BOLD}{movie_name}{Bcolors.ENDC} ({movie_year}) was created in database"
                 f" with rating: {Bcolors.BOLD}{movie_rating}{Bcolors.ENDC}")
@@ -160,6 +161,8 @@ def update_movie_rating():
     Updates the rating for a movie in the database. Movie name must be exact match to be updated,
     otherwise prints out that no movie was found.
     """
+    pass
+    # DEPRECATED
     movie_name = input(f"{Bcolors.GREEN}Enter a movie name that shall be updated: {Bcolors.ENDC}")
     movie_exist = db_sql.get_specific_movie(movie_name)
     if movie_exist[0]:
