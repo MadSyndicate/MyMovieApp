@@ -1,4 +1,4 @@
-from movie_storage_sql import add_movie, list_movies, delete_movie, update_movie
+from src.movie_project.db.movie_storage_sql import add_movie, list_movies, delete_movie, update_movie
 
 # Test adding a movie
 add_movie("Inception", 2010, 8.8, '')

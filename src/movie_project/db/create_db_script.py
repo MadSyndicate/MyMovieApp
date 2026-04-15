@@ -1,14 +1,20 @@
 from pathlib import Path
 from sqlalchemy import create_engine, text
 
-
-# Define the database URL
+# Projekt-Root
 BASE_DIR = Path(__file__).resolve().parents[3]
-DB_PATH = f'{BASE_DIR}/data/movies.db'
-# Create the engine
-engine = create_engine(DB_PATH)
 
-# Create the movies table if it does not exist
+# DB Pfad
+DATA_DIR = BASE_DIR / "data"
+DB_PATH = DATA_DIR / "movies.db"
+
+# 🔥 WICHTIG: Ordner erstellen, falls nicht vorhanden
+DATA_DIR.mkdir(parents=True, exist_ok=True)
+
+print(f"DB_PATH: {DB_PATH}")
+
+engine = create_engine(f"sqlite:///{DB_PATH}")
+
 with engine.connect() as create_connection:
     create_connection.execute(text("""
         CREATE TABLE IF NOT EXISTS movies (

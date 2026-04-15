@@ -35,6 +35,9 @@ MovieProjectPart3/
 │   └── main.py
 │
 ├── static/
+│   └── styles.css
+├── templates/
+│   └── index_template.html
 ├── data/
 │   └── movies.db
 │
@@ -77,7 +80,7 @@ You can register for your personal API key [under this URL](https://www.omdbapi.
 To initialize the database structure:
 
 ```bash
-python -m movie_project.db.setup
+python -m src.movie_project.db.setup
 ```
 
 This will:
@@ -92,7 +95,7 @@ This will:
 To verify that all database operations (CRUD) are working:
 
 ```bash
-python -m movie_project.db.sanity_checks
+python -m src.movie_project.db.sanity_checks
 ```
 
 ---
@@ -100,7 +103,7 @@ python -m movie_project.db.sanity_checks
 ## 🚀 Running the CLI
 
 ```bash
-python -m movie_project.main
+python -m src.movie_project.main
 ```
 
 ---
