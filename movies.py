@@ -9,9 +9,7 @@ import matplotlib.pyplot as plt
 from fuzzywuzzy import process # also pip install python-Levenshtein to get rid of warning
 import movie_storage_sql as db_sql
 import api.fetch_movie_data as movie_api
-
-
-
+import html_generator
 
 # Source - https://stackoverflow.com/a/287944
 class Bcolors:
@@ -98,6 +96,7 @@ def show_menu_and_get_input():
     print("9. Movies sorted by year")
     print("10. Filter Movies")
     print(f"11. Movie-rating histogram{Bcolors.ENDC}")
+    print(f"12. Generate Website")
     print()
     return get_input(f"{Bcolors.GREEN}Enter choice (0-11): {Bcolors.ENDC}", int,
                      f"{Bcolors.FAIL}Please enter an integer!{Bcolors.ENDC}")
@@ -374,6 +373,16 @@ def ask_for_filter_input(prompt, cast_type, error_msg):
         return None
 
 
+def generate_website():
+    movie_data = db_sql.list_movies()
+    with open("./_static/index_template.html", "r", encoding="utf-8") as fr:
+        template = fr.read()
+        html_output = html_generator.generate_html_from_template(template, "Masterschool's Movie App", movie_data)
+        with open("./_static/index.html", "w") as fw:
+            fw.write(html_output)
+        print("Website generated!")
+
+
 def get_filtered_movies():
     """
     Function to print out a list for the given filter criteria. User is asked for a minimum rating,
@@ -424,7 +433,8 @@ def get_program_functions():
         8: get_movies_sorted_rating,
         9: get_movies_sorted_year,
         10: get_filtered_movies,
-        11: draw_rating_histogram_to_file
+        11: draw_rating_histogram_to_file,
+        12: generate_website
     }
     return func_options
 
