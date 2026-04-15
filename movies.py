@@ -270,7 +270,8 @@ def fuzzy_movie_search():
     search_input = input("Enter part of movie name: ")
     data = db_sql.get_specific_movie(search_input)
     if data[0]:
-        print(f"{Bcolors.BOLD}{search_input}: {data[1][search_input]}{Bcolors.ENDC}")
+        movie_title_db = next(iter(data[1]))
+        print(f"{Bcolors.BOLD}{movie_title_db}: {data[1][movie_title_db]}{Bcolors.ENDC}")
     else:
         fuzzy_data = db_sql.list_movies()
         all_matches = process.extractBests(search_input, fuzzy_data.keys(), score_cutoff=60)
