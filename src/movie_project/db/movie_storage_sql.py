@@ -1,10 +1,12 @@
+from pathlib import Path
 from sqlalchemy import create_engine, text
 
 # Define the database URL
-DB_URL = "sqlite:///./db/movies.db"
-
+BASE_DIR = Path(__file__).resolve().parents[3]
+DB_PATH = f'{BASE_DIR}/data/movies.db'
 # Create the engine
-engine = create_engine(DB_URL)
+engine = create_engine(f'sqlite:///{DB_PATH}')
+
 
 
 def list_movies():

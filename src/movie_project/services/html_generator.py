@@ -1,3 +1,4 @@
+# in case no poster url for movie in db
 NA_PIC_SOURCE = "https://upload.wikimedia.org/wikipedia/commons/1/14/No_Image_Available.jpg?_=20200913095930"
 
 def generate_html_from_template(template, title, movies):

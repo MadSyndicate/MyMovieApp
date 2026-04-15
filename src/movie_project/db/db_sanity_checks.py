@@ -1,7 +1,7 @@
 from movie_storage_sql import add_movie, list_movies, delete_movie, update_movie
 
 # Test adding a movie
-add_movie("Inception", 2010, 8.8)
+add_movie("Inception", 2010, 8.8, '')
 
 # Test listing movies
 movies = list_movies()

@@ -1,6 +1,7 @@
 import os
 import requests
-DATA_URL = "http://www.omdbapi.com/"
+
+DATA_URL = "https://www.omdbapi.com"
 API_KEY = os.getenv('API_KEY')
 
 

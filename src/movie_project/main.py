@@ -6,10 +6,11 @@ import random as rand
 import sys
 
 import matplotlib.pyplot as plt
-from fuzzywuzzy import process # also pip install python-Levenshtein to get rid of warning
-import movie_storage_sql as db_sql
-import api.fetch_movie_data as movie_api
-import html_generator
+from fuzzywuzzy import process
+from src.movie_project.db import movie_storage_sql as db_sql
+import src.movie_project.api.fetch_movie_data as movie_api
+from src.movie_project.services import html_generator
+
 
 # Source - https://stackoverflow.com/a/287944
 class Bcolors:
@@ -95,8 +96,8 @@ def show_menu_and_get_input():
     print("8. Movies sorted by rating")
     print("9. Movies sorted by year")
     print("10. Filter Movies")
-    print(f"11. Movie-rating histogram{Bcolors.ENDC}")
-    print(f"12. Generate Website")
+    print(f"11. Movie-rating histogram")
+    print(f"12. Generate Website{Bcolors.ENDC}")
     print()
     return get_input(f"{Bcolors.GREEN}Enter choice (0-11): {Bcolors.ENDC}", int,
                      f"{Bcolors.FAIL}Please enter an integer!{Bcolors.ENDC}")
@@ -378,10 +379,10 @@ def ask_for_filter_input(prompt, cast_type, error_msg):
 
 def generate_website():
     movie_data = db_sql.list_movies()
-    with open("./_static/index_template.html", "r", encoding="utf-8") as fr:
+    with open("../../_template/index_template.html", "r", encoding="utf-8") as fr:
         template = fr.read()
         html_output = html_generator.generate_html_from_template(template, "Masterschool's Movie App", movie_data)
-        with open("./_static/index.html", "w") as fw:
+        with open("../../_static/index.html", "w") as fw:
             fw.write(html_output)
         print("Website generated!")
 
