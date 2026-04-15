@@ -1,12 +1,15 @@
+from dotenv import load_dotenv
+load_dotenv()
+
 import statistics as stats
 import random as rand
 import sys
-from datetime import datetime
 
 import matplotlib.pyplot as plt
 from fuzzywuzzy import process # also pip install python-Levenshtein to get rid of warning
 import movie_storage_sql as db_sql
-
+import api.fetch_movie_data as movie_api
+import html_generator
 
 # Source - https://stackoverflow.com/a/287944
 class Bcolors:
@@ -93,6 +96,7 @@ def show_menu_and_get_input():
     print("9. Movies sorted by year")
     print("10. Filter Movies")
     print(f"11. Movie-rating histogram{Bcolors.ENDC}")
+    print(f"12. Generate Website")
     print()
     return get_input(f"{Bcolors.GREEN}Enter choice (0-11): {Bcolors.ENDC}", int,
                      f"{Bcolors.FAIL}Please enter an integer!{Bcolors.ENDC}")
@@ -114,17 +118,21 @@ def create_movie():
               f"({Bcolors.BOLD}{movie_exist[1]['year']}{Bcolors.ENDC}) "
               f"with a rating of {Bcolors.BOLD}{movie_exist[1]['rating']}{Bcolors.ENDC}")
     else:
-        movie_year = get_input(f"{Bcolors.GREEN}Enter the movie year: {Bcolors.ENDC}", int,
-                               f"{Bcolors.FAIL}Please enter an integer!{Bcolors.ENDC}",
-                               limit=datetime.now().year)
-        movie_rating = get_input(f"{Bcolors.GREEN}Enter the movie rating: {Bcolors.ENDC}", float,
-                               f"{Bcolors.FAIL}Please enter a float up to 10.0!{Bcolors.ENDC}",
-                                 limit=10)
-        db_sql.add_movie(movie_name, movie_year, movie_rating)
-        print(
-            f"{Bcolors.BOLD}{movie_name}{Bcolors.ENDC} ({movie_year}) was created in database"
-            f" with rating: {Bcolors.BOLD}{movie_rating}{Bcolors.ENDC}")
-
+        api_response = movie_api.fetch_movie_data(movie_name)
+        if api_response["Response"] == 'True':
+            fetched_movie_name = api_response.get("Title") or movie_name
+            movie_year = api_response.get("Year", None)
+            movie_rating = next(
+                (float(r["Value"].split("/")[0]) for r in api_response["Ratings"] if r["Source"] == "Internet Movie Database"),
+                None
+            )
+            movie_poster = api_response.get("Poster", None)
+            db_sql.add_movie(fetched_movie_name, movie_year, movie_rating, movie_poster)
+            print(
+                f"{Bcolors.BOLD}{movie_name}{Bcolors.ENDC} ({movie_year}) was created in database"
+                f" with rating: {Bcolors.BOLD}{movie_rating}{Bcolors.ENDC}")
+        else:
+            print(f"Movie with name {movie_name} could not be found on omdapi.com. Please try another name!")
     print()
 
 
@@ -153,6 +161,8 @@ def update_movie_rating():
     Updates the rating for a movie in the database. Movie name must be exact match to be updated,
     otherwise prints out that no movie was found.
     """
+    pass
+    # DEPRECATED
     movie_name = input(f"{Bcolors.GREEN}Enter a movie name that shall be updated: {Bcolors.ENDC}")
     movie_exist = db_sql.get_specific_movie(movie_name)
     if movie_exist[0]:
@@ -175,7 +185,7 @@ def delete_movie():
     movie_name = input("Enter a movie name that shall be deleted: ")
     movie_exist = db_sql.get_specific_movie(movie_name)
     if movie_exist[0]:
-        db_sql.delete_movie(movie_name)
+        db_sql.delete_movie(next(iter(movie_exist[1])))
         #print(f"{Bcolors.BOLD}`{movie_name}`{Bcolors.ENDC} was deleted from database")
     else:
         print(f"{Bcolors.FAIL}Error: `{movie_name}` was not found in database and thus "
@@ -258,11 +268,12 @@ def fuzzy_movie_search():
     If search input is exact match with movie title, prints out the movie information.
     """
     search_input = input("Enter part of movie name: ")
-    data = db_sql.list_movies()
-    if search_input in data:
-        print(f"{Bcolors.BOLD}{search_input}: {data[search_input]}{Bcolors.ENDC}")
+    data = db_sql.get_specific_movie(search_input)
+    if data[0]:
+        print(f"{Bcolors.BOLD}{search_input}: {data[1][search_input]}{Bcolors.ENDC}")
     else:
-        all_matches = process.extractBests(search_input, data.keys(), score_cutoff=60)
+        fuzzy_data = db_sql.list_movies()
+        all_matches = process.extractBests(search_input, fuzzy_data.keys(), score_cutoff=60)
         print(f"{Bcolors.WARNING}The movie "
               f"{Bcolors.BOLD}{search_input}{Bcolors.ENDC}{Bcolors.WARNING} "
               f"does not exist."
@@ -271,7 +282,7 @@ def fuzzy_movie_search():
             for match, _ in all_matches:
                 print(f"{Bcolors.BOLD}{match}{Bcolors.ENDC}")
         else:
-            fallback_minimum_match = process.extractOne(search_input, data.keys())
+            fallback_minimum_match = process.extractOne(search_input, fuzzy_data.keys())
             print(f"{Bcolors.BOLD}{fallback_minimum_match[0]}{Bcolors.ENDC}")
 
 
@@ -364,6 +375,16 @@ def ask_for_filter_input(prompt, cast_type, error_msg):
         return None
 
 
+def generate_website():
+    movie_data = db_sql.list_movies()
+    with open("./_static/index_template.html", "r", encoding="utf-8") as fr:
+        template = fr.read()
+        html_output = html_generator.generate_html_from_template(template, "Masterschool's Movie App", movie_data)
+        with open("./_static/index.html", "w") as fw:
+            fw.write(html_output)
+        print("Website generated!")
+
+
 def get_filtered_movies():
     """
     Function to print out a list for the given filter criteria. User is asked for a minimum rating,
@@ -414,7 +435,8 @@ def get_program_functions():
         8: get_movies_sorted_rating,
         9: get_movies_sorted_year,
         10: get_filtered_movies,
-        11: draw_rating_histogram_to_file
+        11: draw_rating_histogram_to_file,
+        12: generate_website
     }
     return func_options
 

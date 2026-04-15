@@ -20,10 +20,10 @@ def list_movies():
 def get_specific_movie(title):
     """Retrieve a specific movie by title from the database."""
     with engine.connect() as connection:
-        result = connection.execute(text("SELECT title, year, rating FROM movies WHERE title = :title"),
+        result = connection.execute(text("SELECT title, year, rating FROM movies WHERE LOWER(title) = LOWER(:title)"),
                                     {"title": title})
-        movie = result.fetchall()
-    if title in movie:
+        movie = result.fetchone()
+    if movie is not None:
         return True, {movie[0]: {"year": movie[1], "rating": movie[2]}}
     return False, None
 
