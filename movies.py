@@ -120,13 +120,14 @@ def create_movie():
     else:
         api_response = movie_api.fetch_movie_data(movie_name)
         if api_response["Response"] == 'True':
+            fetched_movie_name = api_response.get("Title") or movie_name
             movie_year = api_response.get("Year", None)
             movie_rating = next(
                 (float(r["Value"].split("/")[0]) for r in api_response["Ratings"] if r["Source"] == "Internet Movie Database"),
                 None
             )
             movie_poster = api_response.get("Poster", None)
-            db_sql.add_movie(movie_name, movie_year, movie_rating, movie_poster)
+            db_sql.add_movie(fetched_movie_name, movie_year, movie_rating, movie_poster)
             print(
                 f"{Bcolors.BOLD}{movie_name}{Bcolors.ENDC} ({movie_year}) was created in database"
                 f" with rating: {Bcolors.BOLD}{movie_rating}{Bcolors.ENDC}")
@@ -184,7 +185,7 @@ def delete_movie():
     movie_name = input("Enter a movie name that shall be deleted: ")
     movie_exist = db_sql.get_specific_movie(movie_name)
     if movie_exist[0]:
-        db_sql.delete_movie(movie_name)
+        db_sql.delete_movie(next(iter(movie_exist[1])))
         #print(f"{Bcolors.BOLD}`{movie_name}`{Bcolors.ENDC} was deleted from database")
     else:
         print(f"{Bcolors.FAIL}Error: `{movie_name}` was not found in database and thus "
@@ -267,11 +268,12 @@ def fuzzy_movie_search():
     If search input is exact match with movie title, prints out the movie information.
     """
     search_input = input("Enter part of movie name: ")
-    data = db_sql.list_movies()
-    if search_input in data:
-        print(f"{Bcolors.BOLD}{search_input}: {data[search_input]}{Bcolors.ENDC}")
+    data = db_sql.get_specific_movie(search_input)
+    if data[0]:
+        print(f"{Bcolors.BOLD}{search_input}: {data[1][search_input]}{Bcolors.ENDC}")
     else:
-        all_matches = process.extractBests(search_input, data.keys(), score_cutoff=60)
+        fuzzy_data = db_sql.list_movies()
+        all_matches = process.extractBests(search_input, fuzzy_data.keys(), score_cutoff=60)
         print(f"{Bcolors.WARNING}The movie "
               f"{Bcolors.BOLD}{search_input}{Bcolors.ENDC}{Bcolors.WARNING} "
               f"does not exist."
@@ -280,7 +282,7 @@ def fuzzy_movie_search():
             for match, _ in all_matches:
                 print(f"{Bcolors.BOLD}{match}{Bcolors.ENDC}")
         else:
-            fallback_minimum_match = process.extractOne(search_input, data.keys())
+            fallback_minimum_match = process.extractOne(search_input, fuzzy_data.keys())
             print(f"{Bcolors.BOLD}{fallback_minimum_match[0]}{Bcolors.ENDC}")
 
 
