@@ -136,9 +136,6 @@ def create_movie():
             )
             movie_poster = api_response.get("Poster", None)
             db_sql.add_movie(fetched_movie_name, movie_year, movie_rating, movie_poster)
-            print(
-                f"{Bcolors.BOLD}{movie_name}{Bcolors.ENDC} ({movie_year}) was created in database"
-                f" with rating: {Bcolors.BOLD}{movie_rating}{Bcolors.ENDC}")
         else:
             print(f"Movie with name {movie_name} could not be found on omdapi.com. Please try another name!")
     print()

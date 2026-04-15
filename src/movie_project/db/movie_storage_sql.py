@@ -37,8 +37,8 @@ def add_movie(title, year, rating, poster):
                                {"title": title, "year": year, "rating": rating, "poster": poster})
             connection.commit()
             print(f"Movie '{title}' added successfully.")
-        except Exception as e:
-            print(f"Error: {e}")
+        except Exception as e:  #TODO: concrete what to do
+            print(f"An error occurred. Please try again or contact the maintainer if the problem persists.")
 
 
 def delete_movie(title):

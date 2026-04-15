@@ -89,7 +89,7 @@ pip install -r requirements.txt
 
 This project uses the OMDb API.
 
-Set your API key as an environment variable in a .env file. Use the .env.example.
+Set your API key as an environment variable in a .env file. Use the .env.example to see how to set up your own .env.
 You can register for your personal API key [under this URL](https://www.omdbapi.com/apikey.aspx).
 
 ---
@@ -99,7 +99,7 @@ You can register for your personal API key [under this URL](https://www.omdbapi.
 To initialize the database structure:
 
 ```bash
-python -m src.movie_project.db.setup
+python -m src.movie_project.db.create_db_script
 ```
 
 This will:
