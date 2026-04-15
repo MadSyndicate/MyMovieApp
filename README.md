@@ -53,12 +53,31 @@ MovieProjectPart3/
 
 ```bash
 git clone <your-repo-url>
-cd MyMovieApp
+cd MovieProjectPart3
+```
+---
+
+### 2. Create and activate virtual environment (recommended)
+
+```bash
+python -m venv .venv
+```
+
+#### On Windows:
+
+```bash
+.venv\Scripts\activate
+```
+
+#### On macOS/Linux:
+
+```bash
+source .venv/bin/activate
 ```
 
 ---
 
-### 2. Install dependencies
+### 3. Install dependencies
 
 ```bash
 pip install -r requirements.txt
