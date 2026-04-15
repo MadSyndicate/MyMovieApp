@@ -26,7 +26,7 @@ A Python-based CLI tool to manage a movie collection enriched with data from the
 ## 📁 Project Structure
 
 ```
-MovieProjectPart3/
+MyMovieApp/
 │
 ├── src/movie_project/
 │   ├── api/
@@ -52,8 +52,8 @@ MovieProjectPart3/
 ### 1. Clone the repository
 
 ```bash
-git clone <your-repo-url>
-cd MovieProjectPart3
+git clone https://github.com/MadSyndicate/MyMovieApp.git
+cd MyMovieApp
 ```
 ---
 
