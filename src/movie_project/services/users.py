@@ -28,7 +28,6 @@ def user_selection():
                 tracker = i
             tracker += 1
             print(f"{tracker}: Add a new user")
-            chosen_user_inp = int(input("Please enter your choice: "))
             chosen_user_inp = helper.get_input(
                 "Please enter your choice: ",
                 int,
@@ -45,7 +44,6 @@ def user_selection():
                 for user_id, name in new_user.items():
                     session.current_user_id = user_id
                     session.current_name = name
-                print(f"New user {session.current_user_name} created and set as active user")
                 break
             else:
                 print("Invalid choice, try again.")
@@ -56,7 +54,6 @@ def user_selection():
             session.current_user_id = user_id
             session.current_name = name
 
-    print(f"New user {session.current_user_name} set as active user")
     return
 
 
@@ -68,7 +65,6 @@ def remove_user():
     if user_inp == "DELETE":
         try:
             user_db.delete_user_by_id(session.current_user_id)
-            movie_db.delete_movies_by_user_id(session.current_user_id)
             session.current_user_id = None
             session.current_name = None
             return

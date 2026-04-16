@@ -38,6 +38,7 @@ def add_user(username):
             connection.commit()
             user_id = result.lastrowid
             print(f"User {username} was added.")
+            print()
             return True, {user_id: username}
         except IntegrityError:
             print(f"User {username} already exists. Try again with a different username.")
