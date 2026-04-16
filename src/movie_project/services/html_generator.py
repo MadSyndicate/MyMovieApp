@@ -8,10 +8,12 @@ def generate_html_from_template(template, title, movies):
         movie_html = f"""
             <li>
                 <div class="movie">
-                    <img class="movie-poster" src="{data.get('poster_url') or NA_PIC_SOURCE}" alt="{name}">
+                    <a href="https://www.imdb.com/title/{data.get('imdb_id')}" target="_blank">
+                        <img class="movie-poster" src="{data.get('poster_url') or NA_PIC_SOURCE}" title="{data.get('user_notes')}" alt="{name}">
+                    </a>
                     <div class="movie-title">{name}</div>
                     <div class="movie-year">{data['year']}</div>
-                    <div class="movie-rating">Internet Movie Database Rating: {data['rating']}</div>
+                    <div class="movie-rating">Internet Movie Database Rating: {data.get('rating') or 'N/A'}</div>
                 </div>
             </li>
             """

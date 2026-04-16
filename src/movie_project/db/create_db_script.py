@@ -23,7 +23,8 @@ with engine.connect() as create_connection:
             rating REAL NOT NULL,
             poster_URL TEXT,
             user_id INTEGER NOT NULL,
-            user_notes TEXT
+            user_notes TEXT,
+            imdb_id TEXT
         )
     """))
     create_connection.commit()

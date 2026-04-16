@@ -12,11 +12,11 @@ engine = create_engine(f'sqlite:///{DB_PATH}')
 def list_movies():
     """Retrieve all movies from the database."""
     with engine.connect() as connection:
-        result = connection.execute(text("SELECT title, year, rating, poster_url, user_notes FROM movies WHERE user_id = :user_id"),
+        result = connection.execute(text("SELECT title, year, rating, poster_url, user_notes, imdb_id FROM movies WHERE user_id = :user_id"),
                                     {"user_id": session.current_user_id})
         movies = result.fetchall()
 
-    return {movie[0]: {"year": movie[1], "rating": movie[2], "poster_url": movie[3]} for movie in movies}
+    return {movie[0]: {"year": movie[1], "rating": movie[2], "poster_url": movie[3], "user_notes": movie[4], "imdb_id": movie[5]} for movie in movies}
 
 
 def get_movie_by_title(title):
@@ -30,12 +30,12 @@ def get_movie_by_title(title):
     return False, None
 
 
-def add_movie(title, year, rating, poster):
+def add_movie(title, year, rating, poster, imdb_id):
     """Add a new movie to the database."""
     with engine.connect() as connection:
         try:
-            connection.execute(text("INSERT INTO movies (title, year, rating, poster_url, user_id) VALUES (:title, :year, :rating, :poster, :user_id)"),
-                               {"title": title, "year": year, "rating": rating, "poster": poster, "user_id": session.current_user_id})
+            connection.execute(text("INSERT INTO movies (title, year, rating, poster_url, user_id, imdb_id) VALUES (:title, :year, :rating, :poster, :user_id, :imdb_id)"),
+                               {"title": title, "year": year, "rating": rating, "poster": poster, "user_id": session.current_user_id, "imdb_id": imdb_id})
             connection.commit()
             print(f"Movie '{title}' added successfully.")
         except Exception as e:  #TODO: concrete what to do
