@@ -1,5 +1,6 @@
 from dotenv import load_dotenv
 load_dotenv()
+from src.movie_project.services.users import user_selection, remove_user
 
 import statistics as stats
 import random as rand
@@ -11,10 +12,11 @@ from src.movie_project.db import movie_storage_sql as db_sql
 import src.movie_project.api.fetch_movie_data as movie_api
 from src.movie_project.services import html_generator
 
+import src.movie_project.services.session as session
+
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parents[2]
-
 TEMPLATE_PATH = BASE_DIR / "_template" / "index_template.html"
 OUTPUT_PATH = BASE_DIR / "_static" / "index.html"
 
@@ -35,7 +37,7 @@ class Bcolors:
     UNDERLINE = '\033[4m'
 
 
-def get_input(prompt, cast_type, error_msg, limit=0):
+def get_input(prompt, cast_type, error_msg, limit=0, err_skip=False):
     """
     helper-function to validate different input types and respond to the user
     what went wrong if needed
@@ -49,7 +51,7 @@ def get_input(prompt, cast_type, error_msg, limit=0):
     while True:
         if cast_type == str:
             value = input(f"{Bcolors.BOLD}{prompt}{Bcolors.ENDC}")
-            if len(value) == 0:
+            if len(value) == 0 and not err_skip:
                 print(error_msg)
                 continue
             return value
@@ -104,9 +106,11 @@ def show_menu_and_get_input():
     print("9. Movies sorted by year")
     print("10. Filter Movies")
     print(f"11. Movie-rating histogram")
-    print(f"12. Generate Website{Bcolors.ENDC}")
+    print(f"12. Generate Website")
+    print(f"13. Switch User")
+    print(f"14. Delete Current User")
     print()
-    return get_input(f"{Bcolors.GREEN}Enter choice (0-12): {Bcolors.ENDC}", int,
+    return get_input(f"{Bcolors.GREEN}Enter choice (0-14): {Bcolors.ENDC}", int,
                      f"{Bcolors.FAIL}Please enter an integer!{Bcolors.ENDC}")
 
 
@@ -119,7 +123,7 @@ def create_movie():
     """
     movie_name = get_input(f"{Bcolors.GREEN}Enter a movie name: {Bcolors.ENDC}", str,
                            "Movie name must not be empty! Please try again.")
-    movie_exist = db_sql.get_specific_movie(movie_name)
+    movie_exist = db_sql.get_movie_by_title(movie_name)
     if movie_exist[0]:
         print(f"The Database already has a movie called "
               f"{Bcolors.BOLD}{movie_name}{Bcolors.ENDC} "
@@ -161,24 +165,23 @@ def get_all_movies():
     print()
 
 
-def update_movie_rating():
+def update_movie_notes():
     """
-    Updates the rating for a movie in the database. Movie name must be exact match to be updated,
+    Updates notes for a movie in the database for current user.
+    Movie name must be exact match to be updated,
     otherwise prints out that no movie was found.
     """
-    pass
-    # DEPRECATED
+
     movie_name = input(f"{Bcolors.GREEN}Enter a movie name that shall be updated: {Bcolors.ENDC}")
-    movie_exist = db_sql.get_specific_movie(movie_name)
+    movie_exist = db_sql.get_movie_by_title(movie_name)
     if movie_exist[0]:
-        movie_rating = get_input(f"{Bcolors.GREEN}Enter the movie rating: {Bcolors.ENDC}", float,
-                                 f"{Bcolors.FAIL}Please enter a float!{Bcolors.ENDC}")
-        db_sql.update_movie(movie_name, movie_rating)
-        #print(f"Movie {Bcolors.BOLD}`{movie_name}`{Bcolors.ENDC} successfully updated! ")  #TODO
+        movie_notes = get_input(f"{Bcolors.GREEN}Enter notes for the move {movie_name}: {Bcolors.ENDC}",
+                                str, "", err_skip=True)
+        db_sql.update_movie_notes(movie_name, movie_notes)
+        print(f"Movie {Bcolors.BOLD}`{movie_name}`{Bcolors.ENDC} successfully updated! ")
     else:
         print(f"{Bcolors.FAIL}Error: `{movie_name}` was not found and thus "
               f"cannot be updated!{Bcolors.ENDC}")
-
     print()
 
 
@@ -188,10 +191,10 @@ def delete_movie():
     otherwise prints out that no movie was found.
     """
     movie_name = input("Enter a movie name that shall be deleted: ")
-    movie_exist = db_sql.get_specific_movie(movie_name)
+    movie_exist = db_sql.get_movie_by_title(movie_name)
     if movie_exist[0]:
-        db_sql.delete_movie(next(iter(movie_exist[1])))
-        #print(f"{Bcolors.BOLD}`{movie_name}`{Bcolors.ENDC} was deleted from database")
+        db_sql.delete_movie_by_title(next(iter(movie_exist[1])))
+        print(f"{Bcolors.BOLD}`{movie_name}`{Bcolors.ENDC} was deleted from database")
     else:
         print(f"{Bcolors.FAIL}Error: `{movie_name}` was not found in database and thus "
               f"cannot be deleted!")
@@ -273,7 +276,7 @@ def fuzzy_movie_search():
     If search input is exact match with movie title, prints out the movie information.
     """
     search_input = input("Enter part of movie name: ")
-    data = db_sql.get_specific_movie(search_input)
+    data = db_sql.get_movie_by_title(search_input)
     if data[0]:
         movie_title_db = next(iter(data[1]))
         print(f"{Bcolors.BOLD}{movie_title_db}: {data[1][movie_title_db]}{Bcolors.ENDC}")
@@ -434,7 +437,7 @@ def get_program_functions():
         1: get_all_movies,
         2: create_movie,
         3: delete_movie,
-        4: update_movie_rating,
+        4: update_movie_notes,
         5: get_movie_stats,
         6: rng_movie,
         7: fuzzy_movie_search,
@@ -442,7 +445,9 @@ def get_program_functions():
         9: get_movies_sorted_year,
         10: get_filtered_movies,
         11: draw_rating_histogram_to_file,
-        12: generate_website
+        12: generate_website,
+        13: user_selection,
+        14: remove_user
     }
     return func_options
 
@@ -452,9 +457,12 @@ def main():
     Entry point for the program. Uses function dispatcher to respond to user command inputs.
     """
     print(f"{Bcolors.HEADER}********* My Movie Database *********{Bcolors.ENDC}")
+
     print()
     function_collection = get_program_functions()
     while True:
+        if session.current_user_id is None:
+            user_selection()
         menu_choice = show_menu_and_get_input()
         try:
             function_collection[menu_choice]()
@@ -468,7 +476,6 @@ def main():
                 while True:
                     if await_enter_input():
                         break
-
 
 
 if __name__ == "__main__":

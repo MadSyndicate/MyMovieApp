@@ -8,7 +8,6 @@ BASE_DIR = Path(__file__).resolve().parents[3]
 DATA_DIR = BASE_DIR / "data"
 DB_PATH = DATA_DIR / "movies.db"
 
-# 🔥 WICHTIG: Ordner erstellen, falls nicht vorhanden
 DATA_DIR.mkdir(parents=True, exist_ok=True)
 
 print(f"DB_PATH: {DB_PATH}")
@@ -22,7 +21,19 @@ with engine.connect() as create_connection:
             title TEXT UNIQUE NOT NULL,
             year INTEGER NOT NULL,
             rating REAL NOT NULL,
-            poster_URL TEXT
+            poster_URL TEXT,
+            user_id INTEGER NOT NULL,
+            user_notes TEXT
+        )
+    """))
+    create_connection.commit()
+
+with engine.connect() as create_connection:
+    create_connection.execute(text("""
+         CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT UNIQUE NOT NULL,
+            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
         )
     """))
     create_connection.commit()
