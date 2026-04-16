@@ -44,7 +44,6 @@ def get_movie_by_title(title):
 
 def add_movie(title, year, rating, poster, imdb_id):
     """Add a new movie to the database."""
-    print(f"[DEBUG]: {session.current_user_id}")
     with engine.connect() as connection:
         try:
             connection.execute(text(

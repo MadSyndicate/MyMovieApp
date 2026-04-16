@@ -147,7 +147,7 @@ The tool can generate a static HTML page showing:
 * Movie title
 * Year
 * IMDb rating
-* Poster (if available)
+* Poster (if available) (clickable, opens tab to IMDb site)
 
 Output will be written to the `static/` directory.
 
@@ -167,7 +167,7 @@ Useful for analyzing your collection.
 
 ## 🧠 Notes
 
-* Movie search uses **fuzzy string matching** if no exact match is found
+* Movie search within the database uses **fuzzy string matching** if no exact match is found
 * Database is stored in:
 
   ```

@@ -42,7 +42,6 @@ def add_user(username):
         except IntegrityError:
             print(f"User {username} already exists. Try again with a different username.")
         except Exception as e:  #TODO: concrete what to do
-            print("[DEBUG] ", e)
             print(f"An error occurred. Please try again or contact the maintainer"
                   f" if the problem persists.")
         return False, None
