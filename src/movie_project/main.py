@@ -1,7 +1,6 @@
+import sys
 from dotenv import load_dotenv
 load_dotenv()
-import sys
-
 import src.movie_project.services.movies as movie_ops
 import src.movie_project.services.visualize_data as vis_ops
 import src.movie_project.services.users as user_ops
@@ -36,12 +35,13 @@ def show_menu_and_get_input():
     print("8. Movies sorted by rating")
     print("9. Movies sorted by year")
     print("10. Filter Movies")
-    print(f"11. Movie-rating histogram")
-    print(f"12. Generate Website")
-    print(f"13. Switch User")
-    print(f"14. Delete Current User")
+    print("11. Movie-rating histogram")
+    print("12. Generate Website")
+    print("13. Switch User")
+    print(f"14. Delete Current User{helper.Bcolors.ENDC}")
     print()
-    return helper.get_input(f"{helper.Bcolors.GREEN}Enter choice (0-14): {helper.Bcolors.ENDC}", int,
+    return helper.get_input(f"{helper.Bcolors.GREEN}Enter choice (0-14): {helper.Bcolors.ENDC}",
+                            int,
                      f"{helper.Bcolors.FAIL}Please enter an integer!{helper.Bcolors.ENDC}")
 
 
@@ -50,7 +50,7 @@ def await_enter_input():
     Function to check enter input after each command final execution.
     :return: True if user does an 'enter' input, otherwise False
     """
-    enter_input_check = input(f"{helper.Bcolors.GREEN}Press enter to continue! {helper.Bcolors.ENDC}")
+    enter_input_check = input(f"{helper.Bcolors.GREEN}Hit enter to continue!{helper.Bcolors.ENDC}")
     if enter_input_check == "":
         print()
         return True
@@ -98,8 +98,9 @@ def main():
             function_collection[menu_choice]()
         except KeyError as e:
             print(f"[ERROR] {e}")
-            print(f"{helper.Bcolors.FAIL}Unknown Command {menu_choice}! "
-                  f"Enter a integer from 0-{len(function_collection.keys())-1}!{helper.Bcolors.ENDC}")
+            print(f"{helper.Bcolors.FAIL}Unknown Command {menu_choice}!"
+                  f"Enter a integer from 0-{len(function_collection.keys())-1}!"
+                  f"{helper.Bcolors.ENDC}")
             print()
         finally:
             if menu_choice != 0:

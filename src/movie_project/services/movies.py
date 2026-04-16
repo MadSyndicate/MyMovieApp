@@ -3,7 +3,7 @@ import random as rand
 
 from fuzzywuzzy import process
 
-import src.movie_project.services.helper as helper
+from src.movie_project.services import helper
 import src.movie_project.api.fetch_movie_data as movie_api
 from src.movie_project.db import movie_storage_sql as db_movie
 
@@ -15,28 +15,38 @@ def create_movie():
     If given input is not matching expected input value type,
     prints an error message and awaits further, correct input.
     """
-    movie_name = helper.get_input(f"{helper.Bcolors.GREEN}Enter a movie name: {helper.Bcolors.ENDC}", str,
+    movie_name = helper.get_input(f"{helper.Bcolors.GREEN}Enter a movie name: "
+                                  f"{helper.Bcolors.ENDC}", str,
                            "Movie name must not be empty! Please try again.")
     movie_exist = db_movie.get_movie_by_title(movie_name)
     if movie_exist[0]:
         print(f"The Database already has a movie called "
               f"{helper.Bcolors.BOLD}{movie_name}{helper.Bcolors.ENDC} "
-              f"({helper.Bcolors.BOLD}{movie_exist[1]['year']}{helper.Bcolors.ENDC}) "
-              f"with a rating of {helper.Bcolors.BOLD}{movie_exist[1]['rating']}{helper.Bcolors.ENDC}")
+              f"({helper.Bcolors.BOLD}{movie_exist[1]['year']}{helper.Bcolors.ENDC})"
+              f"with a rating of {helper.Bcolors.BOLD}{movie_exist[1]['rating']}"
+              f"{helper.Bcolors.ENDC}")
     else:
         api_response = movie_api.fetch_movie_data(movie_name)
         if api_response["Response"] == 'True':
             fetched_movie_name = api_response.get("Title") or movie_name
             movie_year = api_response.get("Year", None)
             movie_rating = next(
-                (float(r["Value"].split("/")[0]) for r in api_response["Ratings"] if r["Source"] == "Internet Movie Database"),
+                (float(r["Value"].split("/")[0])
+                 for r in api_response["Ratings"] if r["Source"] == "Internet Movie Database"),
                 None
             )
             movie_poster = api_response.get("Poster", None)
             movie_imdb_id = api_response.get("imdbID", None)
-            db_movie.add_movie(fetched_movie_name, movie_year, movie_rating, movie_poster, movie_imdb_id)
+            db_movie.add_movie(
+                fetched_movie_name,
+                movie_year,
+                movie_rating,
+                movie_poster,
+                movie_imdb_id
+            )
         else:
-            print(f"Movie with name {movie_name} could not be found on omdapi.com. Please try another name!")
+            print(f"Movie with name {movie_name} could not be found on omdapi.com."
+                  f" Please try another name!")
     print()
 
 
@@ -77,11 +87,13 @@ def update_movie_notes():
     otherwise prints out that no movie was found.
     """
 
-    movie_name = input(f"{helper.Bcolors.GREEN}Enter a movie name that shall be updated: {helper.Bcolors.ENDC}")
+    movie_name = input(f"{helper.Bcolors.GREEN}Enter a movie name that "
+                       f"shall be updated: {helper.Bcolors.ENDC}")
     movie_exist = db_movie.get_movie_by_title(movie_name)
     if movie_exist[0]:
-        movie_notes = helper.get_input(f"{helper.Bcolors.GREEN}Enter notes for the move {movie_name}: {helper.Bcolors.ENDC}",
-                                str, "", err_skip=True)
+        movie_notes = helper.get_input(
+            f"{helper.Bcolors.GREEN}Enter notes for the move {movie_name}: {helper.Bcolors.ENDC}",
+            str, "")
         db_movie.update_movie_notes(movie_name, movie_notes)
         print(f"Movie {helper.Bcolors.BOLD}`{movie_name}`{helper.Bcolors.ENDC} successfully updated! ")
     else:
@@ -184,13 +196,14 @@ def fuzzy_movie_search():
     data = db_movie.get_movie_by_title(search_input)
     if data[0]:
         movie_title_db = next(iter(data[1]))
-        print(f"{helper.Bcolors.BOLD}{movie_title_db}: {data[1][movie_title_db]}{helper.Bcolors.ENDC}")
+        print(f"{helper.Bcolors.BOLD}{movie_title_db}: {data[1][movie_title_db]}"
+              f"{helper.Bcolors.ENDC}")
     else:
         fuzzy_data = db_movie.list_movies()
         all_matches = process.extractBests(search_input, fuzzy_data.keys(), score_cutoff=60)
         print(f"{helper.Bcolors.WARNING}The movie "
-              f"{helper.Bcolors.BOLD}{search_input}{helper.Bcolors.ENDC}{helper.Bcolors.WARNING} "
-              f"does not exist."
+              f"{helper.Bcolors.BOLD}{search_input}{helper.Bcolors.ENDC}"
+              f"{helper.Bcolors.WARNING} does not exist."
               f" Did you mean: {helper.Bcolors.ENDC}")
         if len(all_matches) > 0:
             for match, _ in all_matches:
@@ -245,19 +258,25 @@ def get_filtered_movies():
     db_data = db_movie.list_movies()
 
     minimum_rating = ask_for_filter_input(
-        f"{helper.Bcolors.GREEN}Enter a minimum rating (leave blank for no minimum): {helper.Bcolors.ENDC}",
+        f"{helper.Bcolors.GREEN}Enter a minimum rating (leave blank for no minimum):"
+        f" {helper.Bcolors.ENDC}",
         float,
-        f"{helper.Bcolors.FAIL}Please enter an float or leave blank!: {helper.Bcolors.ENDC}")
+        f"{helper.Bcolors.FAIL}Please enter an float or leave blank!:"
+        f" {helper.Bcolors.ENDC}")
     start_year = ask_for_filter_input(
-        f"{helper.Bcolors.GREEN}Enter a minimum year (leave blank for no minimum year): {helper.Bcolors.ENDC}",
+        f"{helper.Bcolors.GREEN}Enter a minimum year (leave blank for no minimum year): "
+        f"{helper.Bcolors.ENDC}",
         int,
-        f"{helper.Bcolors.FAIL}Please enter an integer or leave blank!: {helper.Bcolors.ENDC}")
+        f"{helper.Bcolors.FAIL}Please enter an integer or leave blank!: "
+        f"{helper.Bcolors.ENDC}")
     end_year = ask_for_filter_input(
-        f"{helper.Bcolors.GREEN}Enter a maximum year (leave blank for no maximum year): {helper.Bcolors.ENDC}",
+        f"{helper.Bcolors.GREEN}Enter a maximum year (leave blank for no maximum year): "
+        f"{helper.Bcolors.ENDC}",
         int,
-        f"{helper.Bcolors.FAIL}Please enter an integer or leave blank!: {helper.Bcolors.ENDC}")
-    for movie, data in db_data.items():
+        f"{helper.Bcolors.FAIL}Please enter an integer or leave blank!: "
+        f"{helper.Bcolors.ENDC}")
 
+    for movie, data in db_data.items():
         if minimum_rating is not None and data["rating"] < minimum_rating:
             continue
         if start_year is not None and data["year"] < start_year:

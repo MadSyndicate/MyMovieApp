@@ -14,7 +14,7 @@ class Bcolors:
     UNDERLINE = '\033[4m'
 
 
-def get_input(prompt, cast_type, error_msg, limit=0, err_skip=False):
+def get_input(prompt, cast_type, error_msg, limit=0):
     """
     helper-function to validate different input types and respond to the user
     what went wrong if needed
@@ -23,13 +23,12 @@ def get_input(prompt, cast_type, error_msg, limit=0, err_skip=False):
     :param cast_type: the expected input type we want to get from the user
     :param error_msg: in case casting to cast_type fails, this gets printed out
     :param limit: if not specified means no limit; otherwise error message with input limit
-    :param err_skip: TODO
     :return: returns the user input in the given cast_type or prints out an error message
     """
     while True:
         if cast_type == str:
             value = input(f"{Bcolors.BOLD}{prompt}{Bcolors.ENDC}")
-            if len(value) == 0 and not err_skip:
+            if len(value) == 0:
                 print(error_msg)
                 continue
             return value

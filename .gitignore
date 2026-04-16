@@ -3,3 +3,4 @@ __pycache__
 .env
 *.db
 _static/index.html
+src/movie_project/histogram.png

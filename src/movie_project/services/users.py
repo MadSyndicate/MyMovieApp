@@ -1,18 +1,21 @@
 from src.movie_project.db import user_storage_sql as user_db
 from src.movie_project.db import movie_storage_sql as movie_db
-import src.movie_project.services.session as session
+from src.movie_project.services import helper
+from src.movie_project.services import session
 
 
 def create_new_user():
+    """service-layer to create new user"""
     user_name = ''
     while True:
-        user_name = input("Please enter your name: ")   #TODO making sure correct/length type is used
+        user_name = input("Please enter your name: ")
         result = user_db.add_user(user_name)
         if result[0]:
             return result[1]
 
 
 def user_selection():
+    """service-layer to select a user from the user's selection"""
     user_dict = user_db.list_users()
 
     if len(user_dict) > 0:
@@ -26,6 +29,11 @@ def user_selection():
             tracker += 1
             print(f"{tracker}: Add a new user")
             chosen_user_inp = int(input("Please enter your choice: "))
+            chosen_user_inp = helper.get_input(
+                "Please enter your choice: ",
+                int,
+                "Invalid choice, try again."
+            )
 
             if 1 <= chosen_user_inp <= len(user_items) and chosen_user_inp != tracker:
                 actual_user = user_items[chosen_user_inp - 1]
@@ -53,6 +61,7 @@ def user_selection():
 
 
 def remove_user():
+    """service-layer to remove a user"""
     print(f"You are about to delete the current user {session.current_user_name} and all movies"
           f"in the database connected to this user. This cannot be reverted!")
     user_inp = input("Please enter 'DELETE' if you are sure, or anything else to cancel: ")

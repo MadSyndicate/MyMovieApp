@@ -6,7 +6,7 @@ API_KEY = os.getenv('API_KEY')
 
 
 def fetch_movie_data(title):
-    """"""
+    """Fetch Movie Data from API"""
     params = {
         "apikey": API_KEY,
         "t": title
@@ -19,3 +19,4 @@ def fetch_movie_data(title):
     except (requests.exceptions.ReadTimeout, requests.exceptions.ConnectionError):
         print('TIMEOUT Error')
 
+    return {}
